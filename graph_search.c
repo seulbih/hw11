@@ -13,7 +13,8 @@ typedef struct graphNode { //인접리스트의 노드 구조체
 typedef struct Graph { //그래프를 인접리스트로 표현하기 위한 구조체
 	int n; //노드의 갯수
 	graphNode* list[MAX_VERTEX]; //그래프용 인접리스트 생성
-	int visited[MAX_VERTEX]; //flag
+	int Dvisited[MAX_VERTEX]; //flag
+	int Bvisited[MAX_VERTEX];
 }Graph;
 
 typedef struct stack{
@@ -23,10 +24,25 @@ typedef struct stack{
 
 stack* top;
 
+typedef struct Qnode{
+	int data;
+	struct Qnode *link;
+}Qnode;
+
+typedef struct {
+	Qnode *front;
+	Qnode *rear;
+}Queue;
+
+Queue *createQ();
+void enQueue(Queue *q, int item);
+int deQueue(Queue *q);
+
 Graph* initialize(Graph* g);
 int freeGraph(Graph* g);
 int insertVertex(Graph* g);
 int insertEdge(Graph* g, int u, int v);
+void printGraph(Graph* g);
 int DFS(Graph* g, int v);
 int BFS(Graph* g, int v);
 int isEmpty();
@@ -87,7 +103,7 @@ int main()
 			printf("Your Key = ");
 			fflush(stdout);
 			scanf("%d", &u);
-
+			BFS(graph, u);
 			break;
 
 		case 'p': case 'P':
@@ -119,7 +135,8 @@ Graph* initialize(Graph* g){
 	temp->n=0; //정점의 갯수=0으로 설정
 	for(v=0; v<MAX_VERTEX; v++){ //그래프리스트 초기화
 		temp->list[v]=NULL;
-		temp->visited[v]=FALSE;
+		temp->Dvisited[v]=FALSE;
+		temp->Bvisited[v]=FALSE;
 	}
 	return temp;
 }
@@ -149,6 +166,15 @@ int isEmpty(){ //스택이 비었는지 확인
 		return 0;
 }
 
+int QisEmpty(Queue *q){
+	if(q->front == NULL){
+		printf("\n Queue is empty\n");
+		return 1;
+	}
+	else
+		return 0;
+}
+
 void push(int n){
 	stack* temp=(stack *)malloc(sizeof(stack));
 	temp->data=n;
@@ -172,11 +198,40 @@ int pop(){
 	}
 }
 
+void enQueue(Queue *q, int item){
+	Qnode *node=(Qnode *)malloc(sizeof(Qnode));
+	node->data=item;
+	node->link=NULL;
+	if(q->front==NULL){
+		q->front=node;
+		q->rear=node;
+	}
+	else{
+		q->rear->link=node;
+		q->rear=node;
+	}
+}
+
+int deQueue(Queue *q){
+	Qnode *temp=q->front;
+	int item;
+	if(QisEmpty(q))
+		return 0;
+	else{
+		item = temp->data;
+		q->front = q->front->link;
+		if(q->front == NULL)
+			q->rear=NULL;
+		free(temp);
+		return item;
+	}
+}
+
 int DFS(Graph* g, int v){
 	graphNode* t;
 	top=NULL;
 	push(v);
-	g->visited[v]=TRUE;
+	g->Dvisited[v]=TRUE;
 	printf("[ %d ]", v);
 
 	while(!isEmpty()){
@@ -184,12 +239,12 @@ int DFS(Graph* g, int v){
 		t=g->list[v];
 
 		while(t){
-			if(!g->visited[t->vertex]){
+			if(!g->Dvisited[t->vertex]){
 				if(isEmpty()){
 					push(v);
 				}
 				push(t->vertex);
-				g->visited[t->vertex]=TRUE;
+				g->Dvisited[t->vertex]=TRUE;
 				printf("[ %d ]", t->vertex);
 				v=t->vertex;
 				t=g->list[v];
@@ -201,7 +256,35 @@ int DFS(Graph* g, int v){
 
 	return 0;
 }
+
+Queue *createQ(){
+	Queue *q;
+	q=(Queue *)malloc(sizeof(Queue));
+	q->front=NULL;
+	q->rear=NULL;
+	return q;
+}
+
+
 int BFS(Graph* g, int v){
+	graphNode* t;
+	Queue* q;
+	q=createQ();
+	g->Bvisited[v]=TRUE;
+	printf("[ %d ]",v);
+	enQueue(q, v);
+
+	while(!QisEmpty(q)){
+		v=deQueue(q);
+
+		for(t=g->list[v]; t; t=t->link){
+			if(!g->Bvisited[t->vertex]){
+				g->Bvisited[t->vertex] = TRUE;
+				printf("%d", t->vertex);
+				enQueue(q, t->vertex);
+			}
+		}
+	}
 
 	return 0;
 }
