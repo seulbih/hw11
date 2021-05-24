@@ -294,7 +294,7 @@ int BFS(Graph* g, int v){
 		for(t=g->list[v]; t; t=t->link){
 			if(!g->Bvisited[t->vertex]){//visited flag 되어있지 않은 경우
 				g->Bvisited[t->vertex] = TRUE; //flag설정해줌
-				printf("%d", t->vertex);
+				printf("[ %d ]", t->vertex);
 				enQueue(q, t->vertex); //큐에 삽입
 			}
 		}
